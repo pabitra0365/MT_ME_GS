@@ -1,0 +1,1061 @@
+---
+title: "Muti-trait_multi env_GS"
+author: "Pabitra"
+date: "2024-09-28"
+output: html_document
+---
+
+
+### correlation of VI and main trait
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(reshape2)
+
+###data loading
+data1 <- read_excel("2023_drone_data_Avg_filterV1.xlsx", sheet = "F1")
+
+# Define a function to calculate and plot correlations
+plot_correlations <- function(data1, stages, traits, VIs) {
+  corr_matrices <- list()
+  
+  for (stage in stages) {
+    # Select columns for the current stage and traits
+    stage_data <- data1[, c(traits, VIs), drop = FALSE]
+    
+    # Calculate correlations
+    corr_matrix <- cor(stage_data, use = "complete.obs")
+    
+    # Extract relevant correlations
+    relevant_corrs <- corr_matrix[traits, VIs, drop = FALSE]
+    corr_matrices[[stage]] <- relevant_corrs
+  }
+  
+  # Combine all correlation matrices into one
+  combined_corr <- do.call(cbind, corr_matrices)
+  
+  # Melt the combined correlation matrix for ggplot
+  melted_corr <- melt(combined_corr)
+  
+  # Plot the heatmap with correlation values inside the boxes
+  ggplot(melted_corr, aes(Var2, Var1, fill = value, label = round(value, 2))) +
+    geom_tile() +
+    geom_text(size = 3, color = "black") +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                         name="Correlation") +
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    ggtitle("Correlation Heatmap of VIs and Agronomic Traits Across Growth Stages")
+}
+
+# Define stages, traits, and VIs
+stages <- c("F1")
+traits <- c("HD23",  "PH23", "PRO23", "TKW23", "tSNS23",  "TW23", "YLD23")
+VIs <- c("F1_CC", "F1_EG", "F1_NDVI", "F1_NDRE")
+
+# Call the function to plot correlations
+plot_correlations(data1, stages, traits, VIs)
+```
+
+
+
+###Histogram plot
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(readxl)
+
+###data loading
+data <- read_excel("2023_drone_data_Avg_filterV1.xlsx", sheet = "Sheet2")
+View(data)
+
+# Create individual histogram plots
+plot1 <- ggplot(data, aes(x = HD22)) +
+  geom_histogram(binwidth = 10, fill ="olivedrab4",alpha=0.5, color = "black") +
+  labs(x = "HD22", y = "Frequency")
+
+plot2 <- ggplot(data, aes(x = PH22)) +
+  geom_histogram(binwidth = 10, fill = "cyan3",alpha=0.5, color = "black") +
+  labs(x = "PH22", y = "Frequency")
+
+plot3 <- ggplot(data, aes(x = PRO22)) +
+  geom_histogram(binwidth = 10, fill = "mediumpurple1", alpha=0.5, color = "black") +
+  labs(x = "PRO22", y = "Frequency")
+
+plot4 <- ggplot(data, aes(x = tSNS22)) +
+  geom_histogram(binwidth = 10, fill = "tomato1",alpha=0.5, color = "black") +
+  labs(x = "tSNS22", y = "Frequency")
+
+plot5 <- ggplot(data, aes(x = TW22)) +
+  geom_histogram(binwidth = 10, fill ="blue",alpha=0.5, color = "black") +
+  labs(x = "TW22", y = "Frequency")
+
+plot6 <- ggplot(data, aes(x = YLD22)) +
+  geom_histogram(binwidth = 10, fill ="grey",alpha=0.5, color = "black") +
+  labs(x = "YLD22", y = "Frequency")
+
+# Arrange the plots in a grid
+grid.arrange(plot1, plot2, plot3, plot4,plot5,plot6, ncol = 2)
+
+# You can also add a legend if needed
+```
+
+
+
+##Density plot
+
+```{r}
+
+library(ggplot2)
+library(gridExtra)
+library(readxl)
+
+# Load the data
+data <- read_excel("2023_drone_data_Avg_filterV1.xlsx", sheet = "Sheet2")
+View(data)
+
+# Create individual density plots
+plot1 <- ggplot(data, aes(x = HD22)) +
+  geom_density(fill ="olivedrab4", alpha=0.5, color = "black") +
+  labs(x = "HD22", y = "Density")
+
+plot2 <- ggplot(data, aes(x = PH22)) +
+  geom_density(fill = "cyan3", alpha=0.5, color = "black") +
+  labs(x = "PH22", y = "Density")
+
+plot3 <- ggplot(data, aes(x = PRO22)) +
+  geom_density(fill = "mediumpurple1", alpha=0.5, color = "black") +
+  labs(x = "PRO22", y = "Density")
+
+plot4 <- ggplot(data, aes(x = tSNS22)) +
+  geom_density(fill = "tomato1", alpha=0.5, color = "black") +
+  labs(x = "tSNS22", y = "Density")
+
+plot5 <- ggplot(data, aes(x = TW22)) +
+  geom_density(fill ="blue", alpha=0.5, color = "black") +
+  labs(x = "TW22", y = "Density")
+
+plot6 <- ggplot(data, aes(x = YLD22)) +
+  geom_density(fill ="grey", alpha=0.5, color = "black") +
+  labs(x = "YLD22", y = "Density")
+
+# Arrange the plots in a grid
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, ncol = 2)
+
+
+```
+
+
+##Overlapping desnity plot
+```{r}
+
+library(ggplot2)
+library(readxl)
+library(tidyr)
+
+# Load the data
+data <- read_excel("2023_drone_data_Avg_filterV1.xlsx", sheet = "Sheet2")
+View(data)
+
+# Reshape the data into a long format, assuming columns for both years exist
+data_long <- data %>%
+  pivot_longer(cols = c(HD22, PH22, PRO22, tSNS22, TW22, YLD22, 
+                        HD23, PH23, PRO23, tSNS23, TW23, YLD23),
+               names_to = c("Trait", "Year"),
+               names_pattern = "(.*)(\\d{2})",
+               values_to = "Value")
+
+# Create density plots for each trait, separating by year
+ggplot(data_long, aes(x = Value, fill = Year, color = Year)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~Trait, scales = "free") +
+  labs(x = "Value", y = "Density", title = "Overlapping Density Plots for Each Trait (2022 vs 2023)") +
+  theme_minimal()
+
+```
+
+
+
+###Single trait rrblup CV1 5 fold and 50 reps
+```{r}
+library(rrBLUP)
+
+##load pheno
+pheno  <- read.csv("phenousethis.csv", row.names = 1)
+head(pheno)
+
+#Numeric genotype format
+genot <- read.csv("genot.csv", row.names = 1)
+#genot=t(genot)
+
+
+# Assuming you have 'genot' (genotype matrix) and 'pheno' (phenotype data frame with multiple traits)
+# Ensure genotype matrix is numeric
+genot <- as.matrix(genot)  # Convert genotype data to a numeric matrix if not already
+
+# Select the trait of interest (e.g., BLUPsGPC for Grain Protein Content)
+trait_of_interest <- pheno[, "YLD_BLUP"]  # You can replace "BLUPsGPC" with any other trait
+
+# Set up cross-validation
+n_folds <- 5  # Number of folds for cross-validation
+n_reps <- 50  # Number of repetitions
+
+# Create a cross-validation index
+set.seed(123)  # Set seed for reproducibility
+folds <- sample(rep(1:n_folds, length.out = nrow(genot)))  # Randomly assign folds
+
+# Initialize a vector to store prediction accuracy for each fold
+accuracies <- numeric(n_reps * n_folds)
+
+# Perform cross-validation
+for (rep in 1:n_reps) {
+  for (fold in 1:n_folds) {
+    # Split the data into training and testing
+    train_index <- which(folds != fold)
+    test_index <- which(folds == fold)
+    
+    # Training data (ensure matrices are numeric)
+    genot_train <- as.matrix(genot[train_index, ])
+    pheno_train <- trait_of_interest[train_index]  # Use the selected trait for training
+    
+    # Testing data (ensure matrices are numeric)
+    genot_test <- as.matrix(genot[test_index, ])
+    pheno_test <- trait_of_interest[test_index]  # Use the selected trait for testing
+    
+    # Fit the rrBLUP model on the training data
+    model <- mixed.solve(y = pheno_train, Z = genot_train)
+    
+    # Predict on the testing data (ensure 'model$u' is numeric)
+    pred <- as.numeric(genot_test %*% model$u)  # Predicted values
+    
+    # Calculate prediction accuracy (correlation between predicted and observed)
+    accuracies[fold + (rep - 1) * n_folds] <- cor(pred, pheno_test)
+  }
+}
+
+# Average prediction accuracy over all folds and repetitions
+mean_accuracy <- mean(accuracies)
+print(mean_accuracy)
+
+
+# Save accuracies to a CSV file
+write.csv(accuracies, file = "PA_YLD_BLUP_rr.csv", row.names = FALSE)
+```
+
+
+##All at once
+
+```{r}
+
+library(rrBLUP)
+
+
+# Load phenotype and genotype data
+pheno <- read.csv("phenousethis.csv", row.names = 1)
+genot <- read.csv("genot.csv", row.names = 1)
+
+# Convert genotype data to a numeric matrix
+genot <- as.matrix(genot)
+
+# List of traits in the phenotype dataset (column names)
+traits <- colnames(pheno)
+
+# Set up cross-validation parameters
+n_folds <- 5  # Number of folds for cross-validation
+n_reps <- 50  # Number of repetitions
+set.seed(123)  # Set seed for reproducibility
+
+# Initialize an empty data frame to store prediction accuracies for each trait, fold, and repetition
+results <- data.frame(Trait = character(), 
+                      Fold = integer(), 
+                      Rep = integer(), 
+                      Accuracy = numeric(), 
+                      stringsAsFactors = FALSE)
+
+# Loop through each trait
+for (i in seq_along(traits)) {
+  # Select the current trait
+  trait_of_interest <- pheno[, traits[i]]
+  
+  # Perform cross-validation for the current trait
+  for (rep in 1:n_reps) {
+    # Create a cross-validation index for the current repetition
+    folds <- sample(rep(1:n_folds, length.out = nrow(genot)))
+    
+    for (fold in 1:n_folds) {
+      # Split the data into training and testing sets
+      train_index <- which(folds != fold)
+      test_index <- which(folds == fold)
+      
+      # Training data
+      genot_train <- as.matrix(genot[train_index, ])
+      pheno_train <- trait_of_interest[train_index]
+      
+      # Testing data
+      genot_test <- as.matrix(genot[test_index, ])
+      pheno_test <- trait_of_interest[test_index]
+      
+      # Fit the rrBLUP model on the training data
+      model <- mixed.solve(y = pheno_train, Z = genot_train)
+      
+      # Predict on the testing data
+      pred <- as.numeric(genot_test %*% model$u)
+      
+      # Calculate prediction accuracy (correlation between predicted and observed)
+      accuracy <- cor(pred, pheno_test, use = "complete.obs")
+      
+      # Save the accuracy along with the trait, fold, and repetition information
+      results <- rbind(results, data.frame(Trait = traits[i], 
+                                           Fold = fold, 
+                                           Rep = rep, 
+                                           Accuracy = accuracy))
+    }
+  }
+}
+
+# Save all accuracies to a CSV file
+write.csv(results, file = "Detailed_Prediction_Accuracies_All_Traits.csv", row.names = FALSE)
+
+# Print the first few rows of the results to verify
+head(results)
+```
+
+
+##Single trait gblup all at once CV1
+
+```{r}
+
+library(rrBLUP)
+
+# Load phenotype and genotype data
+pheno <- read.csv("phenousethis.csv", row.names = 1)
+genot <- read.csv("genot.csv", row.names = 1)
+
+# Convert genotype data to a numeric matrix
+genot <- as.matrix(genot)
+
+# Compute the Genomic Relationship Matrix (G)
+# You can use the VanRaden method to compute G
+G <- A.mat(genot)
+
+# List of traits in the phenotype dataset (column names)
+traits <- colnames(pheno)
+
+# Set up cross-validation parameters
+n_folds <- 5  # Number of folds for cross-validation
+n_reps <- 50  # Number of repetitions
+set.seed(123)  # Set seed for reproducibility
+
+# Initialize an empty data frame to store detailed prediction accuracies for each trait, fold, and repetition
+detailed_results <- data.frame(Trait = character(), 
+                               Fold = integer(), 
+                               Rep = integer(), 
+                               Accuracy = numeric(), 
+                               stringsAsFactors = FALSE)
+
+# Initialize a data frame to store mean prediction accuracies for each trait
+mean_results <- data.frame(Trait = character(), 
+                           Mean_Accuracy = numeric(), 
+                           stringsAsFactors = FALSE)
+
+# Loop through each trait
+for (i in seq_along(traits)) {
+  # Select the current trait
+  trait_of_interest <- pheno[, traits[i]]
+  
+  # Initialize a vector to store all accuracies for calculating the mean later
+  all_accuracies <- numeric(n_folds * n_reps)
+  
+  # Perform cross-validation for the current trait
+  count <- 1
+  for (rep in 1:n_reps) {
+    # Create a cross-validation index for the current repetition
+    folds <- sample(rep(1:n_folds, length.out = nrow(genot)))
+    
+    for (fold in 1:n_folds) {
+      # Split the data into training and testing sets
+      train_index <- which(folds != fold)
+      test_index <- which(folds == fold)
+      
+      # Subset the phenotype and G matrices for training and testing sets
+      pheno_train <- trait_of_interest[train_index]
+      pheno_test <- trait_of_interest[test_index]
+      G_train <- G[train_index, train_index]
+      G_test_train <- G[test_index, train_index]
+      
+      # Fit the gBLUP model using the genomic relationship matrix G for training set
+      model <- mixed.solve(y = pheno_train, K = G_train)
+      
+      # Predict on the testing data using the genomic relationship between test and train sets
+      pred <- as.numeric(G_test_train %*% model$u)
+      
+      # Calculate prediction accuracy (correlation between predicted and observed)
+      accuracy <- cor(pred, pheno_test, use = "complete.obs")
+      
+      # Save the accuracy along with the trait, fold, and repetition information in the detailed_results
+      detailed_results <- rbind(detailed_results, data.frame(Trait = traits[i], 
+                                                             Fold = fold, 
+                                                             Rep = rep, 
+                                                             Accuracy = accuracy))
+      
+      # Store the accuracy in the all_accuracies vector for mean calculation
+      all_accuracies[count] <- accuracy
+      count <- count + 1
+    }
+  }
+  
+  # Calculate mean accuracy for the current trait
+  mean_accuracy <- mean(all_accuracies, na.rm = TRUE)
+  
+  # Save the mean accuracy in the mean_results data frame
+  mean_results <- rbind(mean_results, data.frame(Trait = traits[i], 
+                                                 Mean_Accuracy = mean_accuracy))
+  
+  # Print the result for the current trait (optional)
+  cat("Trait:", traits[i], "Mean Accuracy:", mean_accuracy, "\n")
+}
+
+# Save the detailed accuracies to a CSV file
+write.csv(detailed_results, file = "Detailed_Prediction_Accuracies_All_Traits_gBLUP.csv", row.names = FALSE)
+
+# Save the mean accuracies to a separate CSV file
+write.csv(mean_results, file = "Mean_Prediction_Accuracies_All_Traits_gBLUP.csv", row.names = FALSE)
+
+# Print the first few rows of the results to verify
+head(detailed_results)
+head(mean_results)
+
+
+```
+
+
+
+###MTM 
+
+
+```{r}
+
+library(MTM)
+
+
+# Read phenotype data (e.g., with VIs and YLD)
+pheno <- read_excel("phenoMT.xlsx", sheet = "F6")
+pheno <- as.data.frame(pheno)
+# Assign the 'Plot' column as the row names for pheno
+rownames(pheno) <- pheno$Plot
+pheno$Plot <- NULL  # Remove the 'Plot' column after assigning it as row names
+
+# Read genotype data (genot.csv)
+genot <- read.csv("genot.csv")
+genot <- as.data.frame(genot)
+# Assuming genot has an 'ID' column that should be used as row names
+rownames(genot) <- genot$Plot
+genot$Plot <- NULL  # Remove the 'ID' column after assigning it as row names
+
+# Check the row names of pheno and genot
+head(rownames(pheno))
+head(rownames(genot))
+
+
+# Ensure data alignment: keep only common individuals
+common_ids <- intersect(rownames(pheno), rownames(genot))
+pheno <- pheno[common_ids, ]
+genot <- genot[common_ids, ]
+
+# Sort by row names to make sure the order is the same
+pheno <- pheno[order(rownames(pheno)), ]
+genot <- genot[order(rownames(genot)), ]
+
+# Select VIs and YLD for the multi-trait analysis
+# Assuming columns 'Feeke6_CC', 'Feeke6_EG', 'Feeke6_NDRE', 'Feeke6_NDVI' are VIs, and 	"HD_BLUP"	,"PH_BLUP",	"PRO_BLUP",	"TKW_BLUP",	"tSNS_BLUP",	"TW_BLUP",	"YLD_BLUP" is the main trait
+Y <- pheno[, c("Feeke6_CC", "YLD_BLUP")]
+
+# Remove non-numeric line names from genotype data
+X_numeric <- genot[, -1]  # Remove first column if it contains line names
+
+# Ensure genotype matrix is numeric
+X_numeric <- as.data.frame(lapply(X_numeric, function(col) {
+    as.numeric(as.character(col))
+}))
+
+# Scale the genotype matrix
+X_scaled <- scale(as.matrix(X_numeric))
+
+# Compute the Genomic Relationship Matrix (GRM)
+G <- tcrossprod(X_scaled) / ncol(X_scaled)
+
+# Specify random effects with an unstructured genetic covariance matrix
+K <- list(
+  list(
+    K = G,  # Genomic Relationship Matrix
+    COV = list(
+      type = 'UN',  # Unstructured covariance
+      df0 = 5,      # Degrees of freedom for 5 traits (VIs + YLD)
+      S0 = diag(5)  # Prior scale matrix (5x5 for 5 traits)
+    )
+  )
+)
+# Specify residual covariance matrix as diagonal (2 traits)
+resCov <- list(
+  type = 'DIAG',  # Diagonal residual covariance matrix
+  S0 = rep(1, 2),  # Prior scale matrix for residuals (2 traits)
+  df0 = rep(1, 2)  # Degrees of freedom for residuals
+)
+
+# Gibbs sampler parameters
+nIter <- 15000  # Total iterations (25,000 post-burn-in)
+burnIn <- 5000  # Burn-in period
+thin <- 5       # Thinning interval
+
+# Specify random effects with an unstructured genetic covariance matrix (for 2 traits)
+K <- list(
+  list(
+    K = G,  # Genomic Relationship Matrix
+    COV = list(
+      type = 'UN',  # Unstructured covariance
+      df0 = 2,      # Degrees of freedom for 2 traits (Feeke6_CC + YLD)
+      S0 = diag(2)  # Prior scale matrix (2x2 for 2 traits)
+    )
+  )
+)
+
+# Run the MTM model for multi-trait prediction
+fm <- MTM(
+  Y = as.matrix(Y),  # Phenotype matrix (2 traits: Feeke6_CC + YLD)
+  XF = NULL,  # No fixed effects (intercept-only model)
+  K = K,  # Random effects specification with G matrix
+  resCov = resCov,  # Correct residual covariance structure for 2 traits
+  nIter = nIter,  # Total number of iterations
+  burnIn = burnIn,  # Burn-in period
+  thin = thin,  # Thinning interval
+  saveAt = "MTM_output_"  # Save the outputs with this prefix
+)
+
+# Extract observed phenotypes
+observed <- as.matrix(Y)
+
+# Extract predicted phenotypes from the model
+predicted <- fm$YHat
+
+# Calculate prediction accuracy using Pearson correlation for each trait
+accuracy_per_trait <- sapply(1:ncol(observed), function(i) {
+    cor(observed[, i], predicted[, i], use = "complete.obs")  # Correlation per trait
+})
+
+
+# Define the trait names corresponding to each prediction accuracy
+trait_names <- colnames(Y)  # This will automatically get the trait names from your Y matrix
+
+# Create a named vector for the prediction accuracies
+accuracy_per_trait <- setNames(accuracy_per_trait, trait_names)
+
+# Print the prediction accuracy with trait names
+print(accuracy_per_trait)
+
+# Optional: Save the results to a CSV file
+write.csv(accuracy_per_trait, file = "MTM_Prediction_Accuracy_VI_YLD.csv")
+
+
+```
+
+
+##ALl in one MTM
+
+
+```{r}
+
+library(MTM)
+library(readxl)
+
+# Read phenotype data (e.g., with VIs and main traits)
+pheno <- read_excel("phenoMT.xlsx", sheet = "F11")
+pheno <- as.data.frame(pheno)
+
+# Assign the 'Plot' column as the row names for pheno
+rownames(pheno) <- pheno$Plot
+pheno$Plot <- NULL  # Remove the 'Plot' column after assigning it as row names
+
+# Read genotype data (genot.csv)
+genot <- read.csv("genot.csv")
+genot <- as.data.frame(genot)
+
+# Assign 'Plot' column as row names for genot
+rownames(genot) <- genot$Plot
+genot$Plot <- NULL
+
+# Ensure data alignment: keep only common individuals
+common_ids <- intersect(rownames(pheno), rownames(genot))
+pheno <- pheno[common_ids, ]
+genot <- genot[common_ids, ]
+
+# Sort by row names to make sure the order is the same
+pheno <- pheno[order(rownames(pheno)), ]
+genot <- genot[order(rownames(genot)), ]
+
+# List of Vegetation Indices (VIs) and main traits
+VI_traits <- c("Feeke11_CC", "Feeke11_EG", "Feeke11_NDRE", "Feeke11_NDVI")  # VIs
+main_traits <- c("HD_BLUP", "PH_BLUP", "PRO_BLUP", "TKW_BLUP", "tSNS_BLUP", "TW_BLUP", "YLD_BLUP")  # Main traits
+
+# Prepare a data frame to store the prediction accuracies for each pair
+results <- data.frame(VI = character(), Main_Trait = character(), Accuracy = numeric(), stringsAsFactors = FALSE)
+
+# Remove non-numeric line names from genotype data
+X_numeric <- genot[, -1]  # Remove first column if it contains line names
+
+# Ensure genotype matrix is numeric
+X_numeric <- as.data.frame(lapply(X_numeric, function(col) {
+    as.numeric(as.character(col))
+}))
+
+# Scale the genotype matrix
+X_scaled <- scale(as.matrix(X_numeric))
+
+# Compute the Genomic Relationship Matrix (GRM)
+G <- tcrossprod(X_scaled) / ncol(X_scaled)
+
+# Loop over all pairs of VIs and main traits
+for (vi in VI_traits) {
+  for (main_trait in main_traits) {
+    
+    # Select the two traits for multi-trait prediction
+    Y <- pheno[, c(vi, main_trait)]
+    
+    # Remove rows with missing data
+    Y <- Y[complete.cases(Y), ]
+    
+    # Check if there's enough data to proceed
+    if (nrow(Y) > 1) {
+      
+      # Specify random effects with an unstructured genetic covariance matrix
+      K <- list(
+        list(
+          K = G,  # Genomic Relationship Matrix
+          COV = list(
+            type = 'UN',  # Unstructured covariance
+            df0 = 2,      # Degrees of freedom for 2 traits (VI + main trait)
+            S0 = diag(2)  # Prior scale matrix (2x2 for 2 traits)
+          )
+        )
+      )
+
+      # Specify residual covariance matrix as diagonal (2 traits)
+      resCov <- list(
+        type = 'DIAG',  # Diagonal residual covariance matrix
+        S0 = rep(1, 2),  # Prior scale matrix for residuals (2 traits)
+        df0 = rep(1, 2)  # Degrees of freedom for residuals
+      )
+
+      # Gibbs sampler parameters
+      nIter <- 15000  # Total iterations
+      burnIn <- 5000  # Burn-in period
+      thin <- 5       # Thinning interval
+
+      # Run the MTM model for multi-trait prediction
+      fm <- MTM(
+        Y = as.matrix(Y),  # Phenotype matrix (VI + main trait)
+        XF = NULL,  # No fixed effects (intercept-only model)
+        K = K,  # Random effects specification with G matrix
+        resCov = resCov,  # Residual covariance structure for 2 traits
+        nIter = nIter,  # Total number of iterations
+        burnIn = burnIn,  # Burn-in period
+        thin = thin,  # Thinning interval
+        saveAt = "MTM_output_"  # Save the outputs with this prefix
+      )
+
+      # Extract observed phenotypes
+      observed <- as.matrix(Y)
+
+      # Extract predicted phenotypes from the model
+      predicted <- fm$YHat
+
+      # Calculate prediction accuracy using Pearson correlation for each trait
+      accuracy_per_trait <- sapply(1:ncol(observed), function(i) {
+        cor(observed[, i], predicted[, i], use = "complete.obs")  # Correlation per trait
+      })
+
+      # Store the accuracy for the main trait
+      accuracy_main_trait <- accuracy_per_trait[2]  # Accuracy for the main trait (second column)
+
+      # Append the results to the results data frame
+      results <- rbind(results, data.frame(VI = vi, Main_Trait = main_trait, Accuracy = accuracy_main_trait))
+      
+      # Print result for the current pair (optional)
+      cat("VI:", vi, "| Main Trait:", main_trait, "| Accuracy:", accuracy_main_trait, "\n")
+      
+    }
+  }
+}
+
+# Save the final results to a CSV file
+write.csv(results, file = "F11_MTM_Prediction_Accuracies_All_Pairs.csv", row.names = FALSE)
+
+# Print the first few rows of the results to verify
+head(results)
+
+
+```
+
+
+##ALL VI together
+```{r}
+
+library(MTM)
+library(readxl)
+
+# Read phenotype data (e.g., with VIs and main traits)
+pheno <- read_excel("phenoMT.xlsx", sheet = "F10")
+pheno <- as.data.frame(pheno)
+
+# Assign the 'Plot' column as the row names for pheno
+rownames(pheno) <- pheno$Plot
+pheno$Plot <- NULL  # Remove the 'Plot' column after assigning it as row names
+
+# Read genotype data (genot.csv)
+genot <- read.csv("genot.csv")
+genot <- as.data.frame(genot)
+
+# Assign 'Plot' column as row names for genot
+rownames(genot) <- genot$Plot
+genot$Plot <- NULL
+
+# Ensure data alignment: keep only common individuals
+common_ids <- intersect(rownames(pheno), rownames(genot))
+pheno <- pheno[common_ids, ]
+genot <- genot[common_ids, ]
+
+# Sort by row names to make sure the order is the same
+pheno <- pheno[order(rownames(pheno)), ]
+genot <- genot[order(rownames(genot)), ]
+
+# List of Vegetation Indices (VIs) and main traits
+VI_traits <- c("Feeke10_CC", "Feeke10_EG", "Feeke10_NDRE", "Feeke10_NDVI")  # All VI traits
+main_traits <- c("HD_BLUP", "PH_BLUP", "PRO_BLUP", "TKW_BLUP", "tSNS_BLUP", "TW_BLUP", "YLD_BLUP")  # Main traits
+
+# Prepare a data frame to store the prediction accuracies for each pair
+results <- data.frame(Main_Trait = character(), Accuracy = numeric(), stringsAsFactors = FALSE)
+
+# Remove non-numeric line names from genotype data
+X_numeric <- genot[, -1]  # Remove first column if it contains line names
+
+# Ensure genotype matrix is numeric
+X_numeric <- as.data.frame(lapply(X_numeric, function(col) {
+    as.numeric(as.character(col))
+}))
+
+# Scale the genotype matrix
+X_scaled <- scale(as.matrix(X_numeric))
+
+# Compute the Genomic Relationship Matrix (GRM)
+G <- tcrossprod(X_scaled) / ncol(X_scaled)
+
+# Loop over each main trait and use all VI traits together
+for (main_trait in main_traits) {
+    
+    # Select the VI traits and the main trait for multi-trait prediction
+    Y <- pheno[, c(VI_traits, main_trait)]
+    
+    # Remove rows with missing data
+    Y <- Y[complete.cases(Y), ]
+    
+    # Check if there's enough data to proceed
+    if (nrow(Y) > 1) {
+        
+        # Specify random effects with an unstructured genetic covariance matrix
+        K <- list(
+          list(
+            K = G,  # Genomic Relationship Matrix
+            COV = list(
+              type = 'UN',  # Unstructured covariance
+              df0 = length(VI_traits) + 1,  # Degrees of freedom for all VIs + 1 main trait
+              S0 = diag(length(VI_traits) + 1)  # Prior scale matrix
+            )
+          )
+        )
+        
+        # Specify residual covariance matrix as diagonal (VI traits + 1 main trait)
+        resCov <- list(
+          type = 'DIAG',  # Diagonal residual covariance matrix
+          S0 = rep(1, length(VI_traits) + 1),  # Prior scale matrix for residuals
+          df0 = rep(1, length(VI_traits) + 1)  # Degrees of freedom for residuals
+        )
+        
+        # Gibbs sampler parameters
+        nIter <- 15000  # Total iterations
+        burnIn <- 5000  # Burn-in period
+        thin <- 5       # Thinning interval
+        
+        # Run the MTM model for multi-trait prediction (all VIs + main trait)
+        fm <- MTM(
+          Y = as.matrix(Y),  # Phenotype matrix (VIs + main trait)
+          XF = NULL,  # No fixed effects (intercept-only model)
+          K = K,  # Random effects specification with G matrix
+          resCov = resCov,  # Residual covariance structure for all traits
+          nIter = nIter,  # Total number of iterations
+          burnIn = burnIn,  # Burn-in period
+          thin = thin,  # Thinning interval
+          saveAt = "MTM_output_"  # Save the outputs with this prefix
+        )
+        
+        # Extract observed phenotypes
+        observed <- as.matrix(Y)
+        
+        # Extract predicted phenotypes from the model
+        predicted <- fm$YHat
+        
+        # Calculate prediction accuracy using Pearson correlation for each trait
+        accuracy_per_trait <- sapply(1:ncol(observed), function(i) {
+          cor(observed[, i], predicted[, i], use = "complete.obs")  # Correlation per trait
+        })
+        
+        # Store the accuracy for the main trait
+        accuracy_main_trait <- accuracy_per_trait[length(accuracy_per_trait)]  # Accuracy for the main trait (last column)
+        
+        # Append the results to the results data frame
+        results <- rbind(results, data.frame(Main_Trait = main_trait, Accuracy = accuracy_main_trait))
+        
+        # Print result for the current main trait (optional)
+        cat("Main Trait:", main_trait, "| Accuracy:", accuracy_main_trait, "\n")
+    }
+}
+
+# Save the final results to a CSV file
+write.csv(results, file = "F10_MTM_Prediction_Accuracies_All_VI_Main_Traits.csv", row.names = FALSE)
+
+# Print the first few rows of the results to verify
+head(results)
+
+```
+
+
+
+###Multi trait multi env Prediction accuracy
+
+```{r}
+
+
+# Install and load necessary libraries
+library(BMTME)
+library(rrBLUP)
+library(data.table)
+
+# Read in phenotype data and convert relevant columns
+pheno <- read.csv("phenoMTME.csv")
+pheno$Genotype <- as.factor(pheno$Genotype)
+pheno$Environment <- as.factor(pheno$Environment)
+trait_cols <- c("GPC", "TW")  # Replace with your trait column names
+pheno <- as.data.table(pheno)
+pheno[, (trait_cols) := lapply(.SD, as.numeric), .SDcols = trait_cols]
+
+# Create the phenotypic response matrix Y and design matrices X and Z1 for environmental and genetic effects
+Y <- as.matrix(pheno[, ..trait_cols])
+X <- model.matrix(~ Environment, data = pheno)
+Z1 <- model.matrix(~ 0 + Genotype, data = pheno)
+
+# Create the interaction terms for G×E and the corresponding incidence matrix Z2
+pheno$GxE <- interaction(pheno$Genotype, pheno$Environment)
+Z2 <- model.matrix(~ 0 + GxE, data = pheno)
+
+# Read genotype data and clean up structure
+genot <- read.csv("genot.csv", row.names = 1, stringsAsFactors = FALSE)
+genot[] <- lapply(genot, as.numeric)
+
+# Remove markers and individuals with missing data, if applicable
+genot <- genot[, colSums(is.na(genot)) == 0]
+genot <- genot[rowSums(is.na(genot)) == 0, ]
+
+# Compute genomic relationship matrix G
+G <- A.mat(genot, impute.method = "none", return.imputed = FALSE)
+
+# Check if genotype IDs in the phenotype (Z1) and genotype (G) data match
+colnames(Z1) <- sub("^Genotype", "", colnames(Z1))
+missing_in_G <- setdiff(colnames(Z1), rownames(G))
+missing_in_Z1 <- setdiff(rownames(G), colnames(Z1))
+
+if (length(missing_in_G) > 0) {
+    cat("Genotypes in Z1 but not in G:", missing_in_G, "\n")
+} else {
+    cat("All genotypes in Z1 are present in G.\n")
+}
+
+if (length(missing_in_Z1) > 0) {
+    cat("Genotypes in G but not in Z1:", missing_in_Z1, "\n")
+} else {
+    cat("All genotypes in G are present in Z1.\n")
+}
+
+# Fit the BMTME model
+fm <- BMTME(
+  Y = Y,
+  X = X,
+  Z1 = Z1,
+  Z2 = Z2,
+  nIter = 10000L,
+  burnIn = 1000L,
+  thin = 5L,
+  bs = ceiling(dim(Z1)[2] / 6),
+  parallelCores = 1,
+  digits = 4,
+  progressBar = TRUE
+)
+
+# View the summary and extract predicted values
+summary(fm)
+predictions <- fm$yHat
+head(predictions)
+
+# Calculate prediction accuracy for each trait
+accuracy_results <- sapply(1:ncol(Y), function(i) {
+  cor(Y[, i], predictions[, i], use = "complete.obs")
+})
+
+# Create a data frame with the accuracy results and display it
+accuracy_df <- data.frame(
+  Trait = trait_cols,
+  Prediction_Accuracy = accuracy_results
+)
+
+print(accuracy_df)
+
+
+```
+
+
+
+###Multi trait multi env CV
+```{r}
+
+# Load the required libraries
+library(BMTME)
+library(dplyr)
+genot <- read.csv("genot.csv")
+genot <- genot[, -1]  # Assuming the first column is genotype names
+# Assuming your genot matrix is already loaded and clean (numeric without missing values)
+genot_matrix <- as.matrix(genot)  # Ensure it's a matrix
+
+
+# Assuming your genotype matrix is `genot` and doesn't have missing values
+library(rrBLUP)
+
+# Generate the genomic relationship matrix (G)
+G <- A.mat(genot, impute.method = "mean")
+
+# Perform Cholesky decomposition
+LG <- chol(G)  # Note: Use chol() for Cholesky decomposition
+
+# Print to check the structure of the Cholesky matrix
+head(LG)
+
+
+ZG <- model.matrix(~0 + as.factor(pheno$Genotype))
+Z.G <- ZG %*% LG
+Z.E <- model.matrix(~0 + as.factor(pheno$Environment))
+ZEG <- model.matrix(~0 + as.factor(pheno$Genotype):as.factor(pheno$Environment))
+G2 <- kronecker(diag(length(unique(pheno$Environment))), data.matrix(G))
+LG2 <- cholesky(G2)
+Z.EG <- ZEG %*% LG2
+Y <- as.matrix(pheno[, -c(1, 2)])
+Response = pheno[, 3]
+
+pheno <- data.frame(GID = pheno[, 1], Env = pheno[, 2], Response = pheno[, 3])
+CrossV <- CV.KFold(pheno, DataSetID = "GID", K = 5, set_seed = 123)
+pm <- BMTME(Y = Y, X = Z.E, Z1 = Z.G, Z2 = Z.EG, nIter = 100, burnIn = 50, thin = 2,bs = 5, testingSet = CrossV)
+
+summary(pm)
+
+boxplot(pm, select= "MAAPE", las = 2)
+boxplot(pm, select= "Pearson", las = 2)
+
+
+```
+
+
+
+###Phenomic selection
+
+```{r}
+
+
+# Load necessary libraries
+library(rrBLUP)
+library(glmnet)
+library(caret)
+library(dplyr)
+library(tidyverse)
+
+# Read phenotypic and genomic data
+phenotypes <- read.csv("pheno.csv")
+genotypes <- read.csv("genot.csv")
+
+# Clean data by removing missing values
+phenotypes <- phenotypes %>% drop_na()
+genotypes <- genotypes %>% drop_na()
+
+# Preview data
+head(phenotypes)
+head(genotypes)
+
+# Compute the genomic relationship matrix (G matrix)
+G <- as.matrix(genotypes[,-1])
+G_matrix <- A.mat(G)
+
+# Estimate heritability for a trait (e.g., GPC - Grain Protein Content)
+trait <- phenotypes$BLUPsGPC
+fit <- mixed.solve(trait, K = G_matrix)
+
+# Extract variance components and calculate heritability
+genetic_variance <- fit$Vu
+residual_variance <- fit$Ve
+heritability <- genetic_variance / (genetic_variance + residual_variance)
+cat("Heritability of GPC: ", round(heritability, 2), "\n")
+
+# Calculate correlation matrix for the traits
+cor_matrix <- cor(phenotypes %>% select(-X))  # Assuming 'X' is a non-numeric column
+print(cor_matrix)
+
+# Genomic BLUP (gBLUP) model for trait prediction
+fit_gblup <- mixed.solve(trait, K = G_matrix)
+gebv <- fit_gblup$u
+head(gebv)
+
+# Load spectral data for LASSO regression
+Spectra <- read.csv("Spectrademo.csv")
+X <- as.matrix(Spectra[, 2:16])  # Assuming columns 2 to 16 are spectral traits
+y <- Spectra$GrainYield
+
+# Standardize traits for LASSO regression
+X_scaled <- scale(X)
+
+# Apply LASSO regression and select the best lambda using cross-validation
+fit_lasso <- cv.glmnet(X_scaled, y, alpha = 1)
+best_lambda <- fit_lasso$lambda.min
+coef_lasso <- coef(fit_lasso, s = best_lambda)
+print(coef_lasso)
+
+# Cross-validation to evaluate LASSO model performance
+set.seed(123)
+fit_lasso_cv <- cv.glmnet(X_scaled, y, alpha = 1, nfolds = 5)
+predictions_lasso <- predict(fit_lasso_cv, s = "lambda.min", newx = X_scaled)
+cor_lasso <- cor(predictions_lasso, y)
+cat("Correlation (LASSO): ", cor_lasso, "\n")
+
+# Scatter plot of predicted vs actual Grain Yield for LASSO
+plot(y, predictions_lasso, main = "LASSO: Predicted vs Actual Grain Yield",
+     xlab = "Actual Grain Yield", ylab = "Predicted Grain Yield")
+abline(0, 1)
+
+# H-BLUP model using phenomic relationship matrix (H-matrix)
+H_matrix <- A.mat(X_scaled)
+fit_hblup <- mixed.solve(y, K = H_matrix)
+hblup_predictions <- fit_hblup$u
+cor_hblup <- cor(hblup_predictions, y)
+cat("Correlation (H-BLUP): ", cor_hblup, "\n")
+
+# Scatter plot of predicted vs actual Grain Yield for H-BLUP
+plot(y, hblup_predictions, main = "H-BLUP: Predicted vs Actual Grain Yield",
+     xlab = "Actual Grain Yield", ylab = "Predicted Grain Yield")
+abline(0, 1)
+
+```
+
+
